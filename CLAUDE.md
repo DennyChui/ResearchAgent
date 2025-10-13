@@ -25,18 +25,33 @@ ResearchAgent/
 
 ### 核心组件
 
-#### 1. Google 搜索工具 (`inference/google_search_tool.py`)
+#### 1. 搜索工具 (`inference/google_search_tool.py`)
 
 - **功能**: 使用 Serper API 提供 Google 搜索能力
 - **接口**: 继承 Qwen-Agent 的 `BaseTool`
-- **注册**: 使用 `@register_tool('google_search')` 装饰器
+- **注册**: 使用 `@register_tool('search')` 装饰器
 - **特性**:
   - 实时网络搜索
+  - 支持单查询和批量查询
   - 智能结果格式化
   - 完善的错误处理
   - 超时控制机制
+  - JSON Schema 参数格式
 
-#### 2. 测试框架 (`tests/`)
+#### 2. Google Scholar 工具 (`inference/google_scholar_tool.py`)
+
+- **功能**: 使用 Serper API 提供 Google Scholar 学术搜索能力
+- **接口**: 继承 Qwen-Agent 的 `BaseTool`
+- **注册**: 使用 `@register_tool('google_scholar')` 装饰器
+- **特性**:
+  - 学术文献搜索
+  - 支持单查询和批量查询
+  - 出版信息和引用数据
+  - PDF 链接提取
+  - 完善的错误处理
+  - JSON Schema 参数格式
+
+#### 3. 测试框架 (`tests/`)
 
 - **结构测试**: 验证工具基本结构和接口
 - **功能测试**: 模拟 API 调用和结果格式化
@@ -91,22 +106,52 @@ uv run python tests/test_google_search.py
 
 ## 工具接口规范
 
-### GoogleSearchTool
+### 搜索工具 (SearchTool)
 
 ```python
-@register_tool('google_search')
+@register_tool('search')
 class GoogleSearchTool(BaseTool):
-    name = 'google_search'
+    name = 'search'
     description = 'Search Google for information using Serper API...'
-    parameters = [{
-        'name': 'query',
-        'type': 'string',
-        'description': 'The search query to perform on Google',
-        'required': True
-    }]
+    parameters = {
+        "type": "object",
+        "properties": {
+            "query": {
+                "type": ["string", "array"],
+                "description": "Search query(s) - can be a single query string or array of queries",
+                "minItems": 1,
+                "items": {"type": "string"}
+            }
+        },
+        "required": ["query"]
+    }
 
     def call(self, params: Union[str, dict]) -> str:
-        # 实现搜索逻辑
+        # 实现搜索逻辑，支持单查询和批量查询
+```
+
+### Google Scholar 工具 (GoogleScholarTool)
+
+```python
+@register_tool('google_scholar')
+class GoogleScholarTool(BaseTool):
+    name = 'google_scholar'
+    description = 'Search Google Scholar for academic literature...'
+    parameters = {
+        "type": "object",
+        "properties": {
+            "query": {
+                "type": ["string", "array"],
+                "description": "Search query(s) - can be a single query string or array of queries",
+                "minItems": 1,
+                "items": {"type": "string"}
+            }
+        },
+        "required": ["query"]
+    }
+
+    def call(self, params: Union[str, dict]) -> str:
+        # 实现学术搜索逻辑，支持单查询和批量查询
 ```
 
 ## 输出格式

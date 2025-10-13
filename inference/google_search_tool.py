@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-@register_tool('google_search')
+@register_tool('search')
 class GoogleSearchTool(BaseTool):
     """
     Google Search tool using Serper API to search the web.
@@ -28,16 +28,21 @@ class GoogleSearchTool(BaseTool):
     organic search results in a formatted string.
     """
 
+    name = 'search'
     description = 'Search Google for information using Serper API. Returns organic search results with titles, snippets, and links.'
 
-    parameters = [
-        {
-            'name': 'query',
-            'type': 'string',
-            'description': 'The search query to perform on Google',
-            'required': True
-        }
-    ]
+    parameters = {
+        "type": "object",
+        "properties": {
+            "query": {
+                "type": ["string", "array"],
+                "description": "Search query(s) - can be a single query string or array of queries to perform on Google",
+                "minItems": 1,
+                "items": {"type": "string"}
+            }
+        },
+        "required": ["query"]
+    }
 
     def __init__(self):
         """Initialize the Google Search tool."""
@@ -51,7 +56,7 @@ class GoogleSearchTool(BaseTool):
         Perform Google search using Serper API.
 
         Args:
-            params: Search parameters, can be string or dict
+            params: Search parameters, can be string, dict, or array
             **kwargs: Additional keyword arguments
 
         Returns:
@@ -69,16 +74,34 @@ class GoogleSearchTool(BaseTool):
             elif isinstance(params, dict):
                 query = params.get('query', '')
             else:
-                return "Error: Invalid parameters format. Expected string or dictionary."
+                return "Error: Invalid parameters format. Expected string, dictionary, or array."
 
-            if not query or not query.strip():
+            if not query or not str(query).strip():
                 return "Error: Search query cannot be empty."
 
-            # Perform the search
-            search_results = self._perform_search(query.strip())
+            # Convert query to list for batch processing
+            if isinstance(query, str):
+                queries = [query.strip()]
+            elif isinstance(query, list):
+                queries = [str(q).strip() for q in query if str(q).strip()]
+            else:
+                return "Error: Query must be a string or array of strings."
 
-            # Format and return results
-            return self._format_results(query, search_results)
+            if not queries:
+                return "Error: No valid queries provided."
+
+            # Perform searches and combine results
+            all_results = []
+            for i, single_query in enumerate(queries):
+                if len(queries) > 1:
+                    all_results.append(f"\n## Search Results for Query {i+1}: '{single_query}'\n")
+
+                search_results = self._perform_search(single_query)
+                formatted_result = self._format_results(single_query, search_results)
+                all_results.append(formatted_result)
+
+            # Return combined results
+            return "\n".join(all_results)
 
         except Exception as e:
             logger.error(f"Error in Google search: {str(e)}")

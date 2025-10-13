@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-测试Google搜索工具的脚本
+测试搜索工具的脚本（Google Search + Google Scholar）
 """
 
 import sys
@@ -29,6 +29,12 @@ def test_tool_structure():
         print(f"✓ 工具描述: {tool.description}")
         print(f"✓ 工具参数: {tool.parameters}")
 
+        # 检查参数是否符合JSON Schema格式
+        if isinstance(tool.parameters, dict) and 'type' in tool.parameters:
+            print("✓ 参数使用JSON Schema格式")
+        else:
+            print("✗ 参数未使用JSON Schema格式")
+
         # 检查call方法存在
         if hasattr(tool, 'call'):
             print("✓ call方法存在")
@@ -42,6 +48,14 @@ def test_tool_structure():
         # 测试无效参数
         result = tool.call(None)
         print("✓ 无效参数处理:", result[:100])
+
+        # 测试数组参数格式
+        result = tool.call({"query": ["Python", "JavaScript"]})
+        print("✓ 数组参数测试:", result[:200])
+
+        # 测试字符串参数格式
+        result = tool.call({"query": "Python programming"})
+        print("✓ 字符串参数测试:", result[:200])
 
         return True
 
@@ -104,7 +118,7 @@ def test_with_qwen_agent():
         from inference.google_search_tool import GoogleSearchTool
 
         # 检查工具是否正确注册
-        if 'google_search' in TOOL_REGISTRY:
+        if 'search' in TOOL_REGISTRY:
             print("✓ 工具已成功注册到TOOL_REGISTRY")
         else:
             print("✗ 工具未在TOOL_REGISTRY中找到")
@@ -122,11 +136,45 @@ def test_with_qwen_agent():
         print(f"✗ 集成测试失败: {e}")
         return False
 
+def test_google_scholar_tool():
+    """测试Google Scholar工具"""
+    print("\n" + "=" * 50)
+    print("测试Google Scholar工具")
+    print("=" * 50)
+
+    try:
+        from inference.google_scholar_tool import GoogleScholarTool
+        print("✓ 成功导入GoogleScholarTool")
+
+        # 创建工具实例
+        tool = GoogleScholarTool()
+        print("✓ 成功创建Google Scholar工具实例")
+
+        # 检查工具属性
+        print(f"✓ 工具名称: {tool.name}")
+        print(f"✓ 工具描述: {tool.description[:100]}...")
+
+        # 检查参数是否符合JSON Schema格式
+        if isinstance(tool.parameters, dict) and 'type' in tool.parameters:
+            print("✓ 参数使用JSON Schema格式")
+        else:
+            print("✗ 参数未使用JSON Schema格式")
+
+        # 测试基本调用功能
+        result = tool.call({"query": "machine learning"})
+        print("✓ 基本调用测试通过")
+
+        return True
+
+    except Exception as e:
+        print(f"✗ Google Scholar工具测试失败: {e}")
+        return False
+
 if __name__ == "__main__":
-    print("Google搜索工具测试开始...")
+    print("搜索工具测试开始（Google Search + Google Scholar）...")
 
     success_count = 0
-    total_tests = 3
+    total_tests = 4
 
     if test_tool_structure():
         success_count += 1
@@ -137,10 +185,13 @@ if __name__ == "__main__":
     if test_with_qwen_agent():
         success_count += 1
 
+    if test_google_scholar_tool():
+        success_count += 1
+
     print("\n" + "=" * 50)
     print(f"测试完成: {success_count}/{total_tests} 通过")
 
     if success_count == total_tests:
-        print("🎉 所有测试通过！Google搜索工具已准备就绪。")
+        print("🎉 所有测试通过！搜索工具已准备就绪。")
     else:
         print("⚠️  部分测试失败，请检查问题。")
