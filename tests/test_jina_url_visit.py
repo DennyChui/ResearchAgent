@@ -170,7 +170,7 @@ def test_qwen_agent_integration():
         from inference.jina_url_visit_tool import JinaURLVisitTool
 
         # 检查工具是否正确注册
-        if 'jina_url_visit' in TOOL_REGISTRY:
+        if 'visit' in TOOL_REGISTRY:
             print("✓ 工具已成功注册到TOOL_REGISTRY")
         else:
             print("✗ 工具未在TOOL_REGISTRY中找到")
@@ -183,7 +183,7 @@ def test_qwen_agent_integration():
             print("✗ 工具未正确继承BaseTool")
 
         # 检查工具注册信息
-        if hasattr(tool, 'name') and tool.name == 'jina_url_visit':
+        if hasattr(tool, 'name') and tool.name == 'visit':
             print("✓ 工具名称正确")
         else:
             print("✗ 工具名称不正确")

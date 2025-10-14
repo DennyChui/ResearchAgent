@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-@register_tool('jina_url_visit')
+@register_tool('visit')
 class JinaURLVisitTool(BaseTool):
     """
     Jina URL Visit tool for extracting and summarizing web content.
@@ -29,7 +29,7 @@ class JinaURLVisitTool(BaseTool):
     structured content and then generate intelligent summaries using LLM.
     """
 
-    name = 'jina_url_visit'
+    name = 'visit'
     description = 'Visit web pages using Jina API to extract structured content and generate intelligent summaries based on a specific goal.'
 
     parameters = {
