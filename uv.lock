@@ -1099,12 +1099,14 @@ name = "researchagent"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "openai" },
     { name = "python-dateutil" },
     { name = "qwen-agent" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "openai", specifier = ">=2.3.0" },
     { name = "python-dateutil", specifier = ">=2.9.0.post0" },
     { name = "qwen-agent", specifier = ">=0.0.31" },
 ]
