@@ -51,7 +51,20 @@ ResearchAgent/
   - 完善的错误处理
   - JSON Schema 参数格式
 
-#### 3. 测试框架 (`tests/`)
+#### 3. Jina URL 访问工具 (`inference/jina_url_visit_tool.py`)
+
+- **功能**: 使用 Jina API 提取网页内容并使用 LLM 生成智能摘要
+- **接口**: 继承 Qwen-Agent 的 `BaseTool`
+- **注册**: 使用 `@register_tool('jina_url_visit')` 装饰器
+- **特性**:
+  - 网页内容结构化提取
+  - 支持单 URL 和批量 URL 处理
+  - 基于 Goal 的智能摘要生成
+  - 内容智能截断和 Token 管理
+  - 完善的错误处理和重试机制
+  - JSON Schema 参数格式
+
+#### 4. 测试框架 (`tests/`)
 
 - **结构测试**: 验证工具基本结构和接口
 - **功能测试**: 模拟 API 调用和结果格式化
@@ -104,6 +117,15 @@ uv run python tests/test_google_search.py
 - **方法**: POST
 - **超时**: 10秒
 
+### Jina API
+
+- **API 密钥**: `JINA_API_KEY` 环境变量
+- **默认密钥**: `jina_0b07d5982d6f4ee287de16cc4b32981fTBZpS-i7feuvLyPdauhoeeIjX0XZ`
+- **端点**: `https://r.jina.ai/{url}`
+- **方法**: GET
+- **超时**: 10秒
+- **重试**: 5次重试，每次超时2秒
+
 ## 工具接口规范
 
 ### 搜索工具 (SearchTool)
@@ -152,6 +174,38 @@ class GoogleScholarTool(BaseTool):
 
     def call(self, params: Union[str, dict]) -> str:
         # 实现学术搜索逻辑，支持单查询和批量查询
+```
+
+### Jina URL 访问工具 (JinaURLVisitTool)
+
+```python
+@register_tool('jina_url_visit')
+class JinaURLVisitTool(BaseTool):
+    name = 'jina_url_visit'
+    description = 'Visit web pages using Jina API to extract structured content and generate intelligent summaries...'
+    parameters = {
+        "type": "object",
+        "properties": {
+            "url": {
+                "type": ["string", "array"],
+                "description": "URL(s) to visit and extract content from - can be single URL or array of URLs",
+                "minItems": 1,
+                "maxItems": 5,
+                "items": {"type": "string", "format": "uri"}
+            },
+            "goal": {
+                "type": "string",
+                "description": "The goal or objective for summarizing the web page content",
+                "minLength": 5,
+                "maxLength": 200
+            }
+        },
+        "required": ["url", "goal"]
+    }
+
+    def call(self, params: Union[str, dict]) -> str:
+        # 实现网页内容提取和智能摘要，支持单URL和批量URL处理
+        # 包含Jina API调用、内容截断、LLM摘要等功能
 ```
 
 ## 输出格式
