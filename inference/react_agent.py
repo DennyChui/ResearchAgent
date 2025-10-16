@@ -13,7 +13,7 @@ from typing import Dict, List, Any, Optional, Union
 from openai import OpenAI
 
 from qwen_agent.agents.fncall_agent import FnCallAgent
-from inference import GoogleSearchTool, GoogleScholarTool, JinaURLVisitTool
+from inference import GoogleSearchTool, GoogleScholarTool, JinaURLVisitTool, PythonSandboxTool
 
 
 # Control Constants
@@ -46,7 +46,8 @@ class ReActAgent:
         self.tools = {
             'search': GoogleSearchTool(),
             'google_scholar': GoogleScholarTool(),
-            'visit': JinaURLVisitTool()
+            'visit': JinaURLVisitTool(),
+            'python_sandbox': PythonSandboxTool()
         }
         
         # Control parameters
@@ -90,13 +91,21 @@ Research Guidelines:
 1. Start with broad searches to understand the topic landscape
 2. Use Google Scholar for academic and research-oriented information
 3. Visit specific URLs to get detailed information from key sources
-4. Synthesize findings from multiple sources
-5. Always provide comprehensive, well-structured answers
+4. Use python_sandbox for computational tasks, data analysis, mathematical calculations, or code execution
+5. Synthesize findings from multiple sources
+6. Always provide comprehensive, well-structured answers
+
+Python Sandbox Tool Usage:
+- Use for mathematical calculations, data processing, or algorithmic analysis
+- Execute code to verify calculations, generate data, or perform computations
+- Example: {{"name": "python_sandbox", "arguments": {{"code": "import math; print(f'Pi = {{math.pi}}')}}}}
+- Use print() statements to get output from the code execution
 
 Response Format:
 - When you have completed your research and have a comprehensive answer, wrap it between <answer></answer> tags
 - Be thorough and cite your sources where appropriate
 - Provide actionable insights when applicable
+- Include computational results when relevant to support your findings
 
 Current Date: {current_date}
 
@@ -125,6 +134,7 @@ Remember: Use tools systematically to gather comprehensive information before pr
             alt_patterns = [
                 r'\{[^{}]*"name"[^{}]*"query"[^{}]*\}',
                 r'\{[^{}]*"name"[^{}]*"url"[^{}]*\}',
+                r'\{[^{}]*"name"[^{}]*"code"[^{}]*\}',
                 r'\{[^{}]*"tool_code"[^{}]*"arguments"[^{}]*\}'
             ]
             
@@ -145,7 +155,7 @@ Remember: Use tools systematically to gather comprehensive information before pr
             lines = content.split('\n')
             for i, line in enumerate(lines):
                 # Skip empty lines and lines that don't contain tool indicators
-                if not line.strip() or not any(indicator in line.lower() for indicator in ['search', 'scholar', 'visit', '"name"', 'tool_code']):
+                if not line.strip() or not any(indicator in line.lower() for indicator in ['search', 'scholar', 'visit', 'python', 'sandbox', 'code', '"name"', 'tool_code']):
                     continue
                 
                 # Try to extract JSON from the line
@@ -167,7 +177,7 @@ Remember: Use tools systematically to gather comprehensive information before pr
         if not tool_calls:
             lines = content.split('\n')
             for i, line in enumerate(lines):
-                if '{' in line and any(keyword in line.lower() for keyword in ['name', 'search', 'scholar', 'visit', 'tool_code']):
+                if '{' in line and any(keyword in line.lower() for keyword in ['name', 'search', 'scholar', 'visit', 'python', 'sandbox', 'code', 'tool_code']):
                     # Start of potential JSON object
                     json_start = line.find('{')
                     if json_start == -1:
@@ -207,7 +217,7 @@ Remember: Use tools systematically to gather comprehensive information before pr
         arguments = tool_call.get('arguments')
         if not arguments:
             # Look for common argument field names
-            for field in ['query', 'url', 'goal']:
+            for field in ['query', 'url', 'goal', 'code']:
                 if field in tool_call:
                     arguments = {field: tool_call[field]}
                     break
