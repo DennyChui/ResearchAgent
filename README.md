@@ -74,16 +74,37 @@ graph TB
 │   ├── google_search_tool.py    # Google搜索工具实现
 │   ├── google_scholar_tool.py   # Google学术搜索工具
 │   ├── jina_url_visit_tool.py   # Jina网页访问工具
+│   ├── python_sandbox_tool.py   # Python沙箱工具
 │   └── react_agent.py          # ReAct Agent实现
-├── tests/                   # 测试脚本
+├── cli/                     # 命令行接口模块
+│   ├── __init__.py         # CLI包初始化
+│   ├── cli.py              # CLI主入口
+│   ├── commands/           # CLI命令模块
+│   │   ├── __init__.py
+│   │   ├── base.py         # 命令基类
+│   │   ├── search.py       # 搜索命令
+│   │   ├── research.py     # 研究命令
+│   │   ├── test.py         # 测试命令
+│   │   ├── example.py      # 示例命令
+│   │   └── interactive.py  # 交互命令
+│   └── utils.py            # CLI工具函数
+├── examples/               # 使用示例
+│   ├── __init__.py
+│   ├── basic_usage.py      # 基础工具使用示例
+│   ├── react_agent_demo.py # ReAct Agent示例
+│   └── tools_demo.py       # 完整工具演示
+├── tests/                  # 测试脚本
 │   ├── __init__.py         # 测试包初始化
 │   ├── test_google_search.py    # Google搜索工具测试
 │   ├── test_jina_url_visit.py   # Jina网页访问工具测试
-│   └── test_react_agent.py      # ReAct Agent测试
-├── main.py                  # 项目主入口
-├── example_usage.py         # 工具使用示例
-├── example_react_agent.py   # ReAct Agent使用示例
-└── README.md               # 文档
+│   ├── test_react_agent.py      # ReAct Agent测试
+│   └── test_python_sandbox.py   # Python沙箱测试
+├── researchagent.py        # 新的CLI入口点
+├── test.py                 # 统一测试脚本
+├── run_tests.py            # 测试运行器
+├── TESTING.md              # 测试文档
+├── CLAUDE.md               # Claude Code配置
+└── README.md               # 项目文档
 ```
 
 ## 安装依赖
@@ -113,19 +134,19 @@ export GLM_API_KEY="your_glm_api_key_here"
 #### 2. 快速测试
 ```bash
 # 测试基础功能
-uv run python main.py test
+uv run python researchagent.py test
 
 # 快速搜索
-uv run python main.py search "人工智能最新发展"
+uv run python researchagent.py search "人工智能最新发展"
 
 # 智能研究
-uv run python main.py research "区块链技术在金融领域的应用"
+uv run python researchagent.py research "区块链技术在金融领域的应用"
 ```
 
 #### 3. 交互式体验
 ```bash
 # 启动交互模式
-uv run python main.py interactive
+uv run python researchagent.py interactive
 ```
 
 ### 📖 详细使用指南
@@ -207,31 +228,39 @@ for i, question in enumerate(research_questions, 1):
 
 ### 🛠️ 命令行工具
 
+ResearchAgent 提供了现代化的CLI界面，支持所有功能：
+
 ```bash
 # 基础搜索功能
-uv run python main.py search "你的搜索关键词"
-
-# 智能研究功能
-uv run python main.py research "你的研究问题"
+uv run python researchagent.py search "你的搜索关键词"
 
 # 学术文献搜索
-uv run python main.py search "深度学习 自然语言处理" --type scholar
+uv run python researchagent.py search "深度学习" --type scholar
 
-# 网页内容提取
-uv run python main.py search "https://example.com" --type visit
+# 智能研究功能
+uv run python researchagent.py research "你的研究问题"
 
-# 运行所有测试
-uv run python main.py test
+# 运行测试
+uv run python researchagent.py test
 
-# 运行ReAct Agent示例
-uv run python main.py react-example
+# 运行示例
+uv run python researchagent.py example basic
+uv run python researchagent.py example react
 
 # 交互式模式
-uv run python main.py interactive
+uv run python researchagent.py interactive
 
 # 查看帮助信息
-uv run python main.py help
+uv run python researchagent.py --help
+uv run python researchagent.py search --help
 ```
+
+#### 新CLI功能特性
+- 🎯 **统一入口**: 所有功能通过 `researchagent.py` 访问
+- 📋 **智能帮助**: 每个命令都有详细的帮助信息
+- 🔧 **丰富选项**: 支持多种参数和配置选项
+- 📊 **详细输出**: 可选择不同输出格式 (text/json)
+- 🚀 **高性能**: 模块化设计，启动更快
 
 ### 4. 与Qwen-Agent Assistant集成
 
@@ -422,11 +451,16 @@ print(result)
 
 ```bash
 # 运行所有测试
-uv run python main.py test
+uv run python researchagent.py test
+
+# 使用统一测试脚本
+uv run python test.py
 
 # 运行特定测试
 uv run python tests/test_google_search.py
 uv run python tests/test_react_agent.py
+uv run python tests/test_jina_url_visit.py
+uv run python tests/test_python_sandbox.py
 ```
 
 测试包括：
@@ -441,13 +475,26 @@ uv run python tests/test_react_agent.py
 查看完整的使用示例：
 
 ```bash
-uv run python example_usage.py
+# 基础工具使用示例
+uv run python examples/basic_usage.py
+
+# ReAct Agent示例
+uv run python examples/react_agent_demo.py
+
+# 完整工具演示
+uv run python examples/tools_demo.py
+
+# 通过CLI运行示例
+uv run python researchagent.py example basic
+uv run python researchagent.py example react
+uv run python researchagent.py example tools
 ```
 
 示例包括：
-- 直接工具调用
-- Assistant集成
-- 自定义Agent开发
+- **基础工具使用**: 单独使用Google搜索、学术搜索、网页访问工具
+- **ReAct Agent演示**: 智能研究代理的完整使用流程
+- **工具集成演示**: 多工具协作完成复杂任务
+- **性能基准测试**: 各工具的性能对比分析
 
 ## 性能和限制
 
@@ -524,7 +571,16 @@ result = agent.research("your question")
 
 ## 版本历史
 
-### v0.2.0 (当前版本) - 2024-10-14
+### v0.3.0 (当前版本) - 2024-10-17
+- 🚀 **重构**: 全新CLI系统，模块化命令行接口
+- 📁 **重组**: 优化项目结构，examples目录重新组织
+- 🗑️ **清理**: 移除冗余文件和备份，精简代码库
+- 🎯 **改进**: 统一的入口点 `researchagent.py`
+- 🔧 **增强**: 更丰富的CLI选项和帮助信息
+- 📊 **新增**: 性能基准测试和工具演示
+- 🚀 **优化**: 启动速度和代码组织结构
+
+### v0.2.0 - 2024-10-14
 - ✨ **新增**: ReAct Agent智能研究代理
 - ✨ **新增**: GLM-4.5-air LLM集成
 - ✨ **新增**: 多格式工具调用检测
@@ -583,10 +639,10 @@ cd ResearchAgent
 uv install
 
 # 运行测试
-uv run python main.py test
+uv run python researchagent.py test
 
 # 启动开发模式
-uv run python main.py interactive
+uv run python researchagent.py interactive
 ```
 
 ### 代码规范

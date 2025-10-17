@@ -106,16 +106,17 @@ def test_truncation_functionality():
         return False
 
 def test_parameter_parsing():
-    """测试参数解析功能"""
+    """测试参数解析功能（使用真实API调用）"""
     print("\n" + "=" * 50)
-    print("测试参数解析功能")
+    print("测试参数解析功能（真实API调用）")
     print("=" * 50)
 
     try:
         from inference.jina_url_visit_tool import JinaURLVisitTool
         tool = JinaURLVisitTool()
 
-        # 测试字典参数
+        # 测试字典参数（真实API调用）
+        print("🔍 测试字典参数解析...")
         dict_params = {
             "url": "https://www.python.org",
             "goal": "Extract Python information"
@@ -123,18 +124,22 @@ def test_parameter_parsing():
         result = tool.call(dict_params)
         if result and not result.startswith("Error"):
             print("✓ 字典参数解析成功")
+            print(f"📋 结果预览: {result[:200]}...")
         else:
             print(f"✗ 字典参数解析失败: {result[:100]}")
 
-        # 测试字符串参数
+        # 测试字符串参数（真实API调用）
+        print("\n🔍 测试字符串参数解析...")
         str_params = '{"url": "https://docs.python.org", "goal": "Get Python docs info"}'
         result = tool.call(str_params)
         if result and not result.startswith("Error"):
             print("✓ 字符串参数解析成功")
+            print(f"📋 结果预览: {result[:200]}...")
         else:
             print(f"✗ 字符串参数解析失败: {result[:100]}")
 
-        # 测试数组URL参数
+        # 测试数组URL参数（真实API调用）
+        print("\n🔍 测试数组URL参数解析...")
         array_params = {
             "url": ["https://www.python.org", "https://docs.python.org"],
             "goal": "Compare Python resources"
@@ -142,10 +147,12 @@ def test_parameter_parsing():
         result = tool.call(array_params)
         if result and not result.startswith("Error"):
             print("✓ 数组URL参数解析成功")
+            print(f"📋 结果预览: {result[:200]}...")
         else:
             print(f"✗ 数组URL参数解析失败: {result[:100]}")
 
         # 测试错误参数处理
+        print("\n🔍 测试错误参数处理...")
         error_params = {"invalid": "parameter"}
         result = tool.call(error_params)
         if result and result.startswith("Error"):
@@ -232,9 +239,9 @@ def test_error_handling():
         return False
 
 def test_structured_output():
-    """测试结构化输出格式"""
+    """测试结构化输出格式（使用真实API调用）"""
     print("\n" + "=" * 50)
-    print("测试结构化输出格式")
+    print("测试结构化输出格式（真实API调用）")
     print("=" * 50)
 
     try:
@@ -242,48 +249,59 @@ def test_structured_output():
         import json
         tool = JinaURLVisitTool()
 
-        # 测试基本结构化输出
+        # 测试基本结构化输出（真实API调用）
+        print("🔍 测试单URL结构化输出...")
         result = tool.call({
             "url": "https://www.python.org",
             "goal": "Extract key Python features"
         })
 
-        # 检查是否包含三个必需字段
-        has_rational = "🎯 Rational" in result
-        has_evidence = "📋 Evidence" in result
-        has_summary = "📝 Summary" in result
+        if result and not result.startswith("Error"):
+            # 检查是否包含三个必需字段
+            has_rational = "🎯 Rational" in result
+            has_evidence = "📋 Evidence" in result
+            has_summary = "📝 Summary" in result
 
-        if has_rational:
-            print("✓ 包含 Rational 字段")
+            if has_rational:
+                print("✓ 包含 Rational 字段")
+            else:
+                print("✗ 缺少 Rational 字段")
+
+            if has_evidence:
+                print("✓ 包含 Evidence 字段")
+            else:
+                print("✗ 缺少 Evidence 字段")
+
+            if has_summary:
+                print("✓ 包含 Summary 字段")
+            else:
+                print("✗ 缺少 Summary 字段")
+
+            # 检查输出格式
+            if "## URL Analysis for:" in result:
+                print("✓ 使用了正确的标题格式")
+            else:
+                print("✗ 标题格式不正确")
+                
+            print(f"📋 结果预览: {result[:300]}...")
         else:
-            print("✗ 缺少 Rational 字段")
+            print(f"✗ 单URL调用失败: {result[:100]}")
 
-        if has_evidence:
-            print("✓ 包含 Evidence 字段")
-        else:
-            print("✗ 缺少 Evidence 字段")
-
-        if has_summary:
-            print("✓ 包含 Summary 字段")
-        else:
-            print("✗ 缺少 Summary 字段")
-
-        # 检查输出格式
-        if "## URL Analysis for:" in result:
-            print("✓ 使用了正确的标题格式")
-        else:
-            print("✗ 标题格式不正确")
-
-        # 测试批量处理的结构化输出
+        # 测试批量处理的结构化输出（真实API调用）
+        print("\n🔍 测试批量URL结构化输出...")
         batch_result = tool.call({
             "url": ["https://www.python.org", "https://docs.python.org"],
             "goal": "Compare Python resources"
         })
 
-        if "Batch URL Summary Report" in batch_result:
-            print("✓ 批量处理格式正确")
+        if batch_result and not batch_result.startswith("Error"):
+            if "Batch URL Summary Report" in batch_result:
+                print("✓ 批量处理格式正确")
+                print(f"📋 批量结果预览: {batch_result[:300]}...")
+            else:
+                print("✗ 批量处理格式不正确")
         else:
-            print("✗ 批量处理格式不正确")
+            print(f"✗ 批量URL调用失败: {batch_result[:100]}")
 
         return True
 

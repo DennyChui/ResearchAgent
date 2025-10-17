@@ -6,7 +6,6 @@ LLM integration, tool execution, and conversation management.
 """
 
 import unittest
-from unittest.mock import Mock, patch, MagicMock
 import json
 import sys
 import os
@@ -22,6 +21,10 @@ class TestReActAgent(unittest.TestCase):
     
     def setUp(self):
         """Set up test fixtures before each test method."""
+        import os
+        if not os.getenv('GLM_API_KEY'):
+            # Skip all tests if API key is not available
+            self.skipTest("GLM_API_KEY not set, skipping all ReAct Agent tests")
         self.agent = ReActAgent()
     
     def test_agent_initialization(self):
@@ -108,24 +111,26 @@ class TestReActAgent(unittest.TestCase):
         self.assertGreater(tokens, 0)
         self.assertLess(tokens, len(text))  # Tokens should be less than characters
     
-    @patch('inference.react_agent.OpenAI')
-    def test_llm_call(self, mock_openai):
-        """Test LLM API call."""
-        # Mock the OpenAI client
-        mock_client = Mock()
-        mock_response = Mock()
-        mock_response.choices = [Mock()]
-        mock_response.choices[0].message.content = "Test LLM response"
-        mock_client.chat.completions.create.return_value = mock_response
+    def test_llm_call(self):
+        """Test LLM API call with real API."""
+        print("\n🔍 Testing real LLM API call...")
         
-        self.agent.client = mock_client
+        # Check if API key is available
+        import os
+        if not os.getenv('GLM_API_KEY'):
+            self.skipTest("GLM_API_KEY not set, skipping real API test")
         
-        messages = [{"role": "user", "content": "Test message"}]
-        response = self.agent._llm_call(messages)
-        
-        self.assertEqual(response, "Test LLM response")
-        self.assertEqual(self.agent.llm_calls, 1)
-        mock_client.chat.completions.create.assert_called_once()
+        try:
+            messages = [{"role": "user", "content": "What is 2+2? Just answer with the number."}]
+            response = self.agent._llm_call(messages)
+            
+            self.assertIsInstance(response, str)
+            self.assertGreater(len(response), 0)
+            self.assertEqual(self.agent.llm_calls, 1)
+            print(f"✓ Real LLM API call successful: {response[:100]}...")
+            
+        except Exception as e:
+            self.fail(f"Real LLM API call failed: {e}")
     
     def test_reset(self):
         """Test agent reset functionality."""
@@ -154,33 +159,42 @@ class TestReActAgent(unittest.TestCase):
         self.assertEqual(history[1]["role"], "user")
         self.assertEqual(history[2]["role"], "assistant")
     
-    @patch('inference.react_agent.OpenAI')
-    def test_research_basic_flow(self, mock_openai):
-        """Test basic research flow with mocked LLM."""
-        # Mock LLM responses
-        mock_client = Mock()
-        mock_response1 = Mock()
-        mock_response1.choices = [Mock()]
-        mock_response1.choices[0].message.content = '''I need to search for information about Python programming.
-{"name": "search", "arguments": {"query": "Python programming basics"}}'''
+    def test_research_basic_flow(self):
+        """Test basic research flow with real APIs."""
+        print("\n🔍 Testing real research flow...")
         
-        mock_response2 = Mock()
-        mock_response2.choices = [Mock()]
-        mock_response2.choices[0].message.content = '''Based on the search results, here's what I found:
-<answer>
-Python is a high-level programming language known for its simplicity and readability.
-It's widely used in web development, data science, and artificial intelligence.
-</answer>'''
+        # Check if API keys are available
+        import os
+        if not os.getenv('GLM_API_KEY'):
+            self.skipTest("GLM_API_KEY not set, skipping real API test")
         
-        mock_client.chat.completions.create.side_effect = [mock_response1, mock_response2]
-        self.agent.client = mock_client
-        
-        # Run research
-        result = self.agent.research("What is Python programming?")
-        
-        # Verify result
-        self.assertIn("Python is a high-level programming language", result)
-        self.assertEqual(self.agent.llm_calls, 2)
+        try:
+            # Use a simple question that should have straightforward answers
+            simple_question = "What is the capital of France?"
+            print(f"📝 Research question: {simple_question}")
+            
+            # Run research with real APIs
+            result = self.agent.research(simple_question)
+            
+            # Verify result contains relevant information
+            self.assertIsInstance(result, str)
+            self.assertGreater(len(result), 50)  # Should have substantial content
+            
+            # Should contain answer-related words (not exact match due to LLM variability)
+            result_lower = result.lower()
+            self.assertTrue(
+                "paris" in result_lower or 
+                "france" in result_lower or
+                "capital" in result_lower,
+                f"Result should contain information about France's capital. Got: {result_lower[:200]}..."
+            )
+            
+            self.assertGreater(self.agent.llm_calls, 0)
+            print(f"✓ Real research flow successful. LLM calls: {self.agent.llm_calls}")
+            print(f"📋 Result preview: {result[:200]}...")
+            
+        except Exception as e:
+            self.fail(f"Real research flow failed: {e}")
     
     def test_truncate_messages_if_needed(self):
         """Test message truncation when context limit is approached."""

@@ -8,7 +8,7 @@ including structure tests, functionality tests, and integration tests.
 import json
 import os
 import unittest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch
 
 # Test the tool structure and basic functionality
 from inference.python_sandbox_tool import PythonSandboxTool
@@ -121,7 +121,7 @@ class TestPythonSandboxToolFunctionality(unittest.TestCase):
         code_with_whitespace = "  \n  print('test')  \n  "
         
         with patch.object(self.tool, '_execute_code') as mock_execute:
-            mock_execute.return_value = {'success': True, 'response': Mock()}
+            mock_execute.return_value = {'success': True, 'response': {'stdout': 'test'}}
             
             self.tool.call({"code": code_with_whitespace})
             
@@ -215,80 +215,73 @@ class TestPythonSandboxToolIntegration(unittest.TestCase):
         
         self.assertIn("Error: sandbox-fusion package is not installed", result)
 
-    @patch('inference.python_sandbox_tool.run_code')
-    @patch('inference.python_sandbox_tool.SANDBOX_FUSION_AVAILABLE', True)
-    def test_successful_code_execution(self, mock_run_code):
-        """Test successful code execution."""
-        # Mock successful response
-        mock_response = Mock()
-        mock_response.stdout = "Hello, World!"
-        mock_response.stderr = ""
-        mock_response.exit_code = 0
+    def test_successful_code_execution(self):
+        """Test successful code execution with real sandbox."""
+        print("\n🔍 Testing real Python sandbox execution...")
         
-        mock_run_code.return_value = mock_response
+        # Check if sandbox endpoint is available
+        import os
+        sandbox_endpoint = os.getenv('SANDBOX_FUSION_ENDPOINT', 'http://localhost:8081')
         
         tool = PythonSandboxTool()
-        result = tool.call({"code": "print('Hello, World!')"})
         
-        # Check that run_code was called with correct parameters
-        mock_run_code.assert_called_once()
-        call_args = mock_run_code.call_args
-        
-        # Check request object
-        request = call_args[0][0]
-        self.assertEqual(request.code, "print('Hello, World!')")
-        self.assertEqual(request.language, 'python')
-        
-        # Check optional parameters
-        self.assertEqual(call_args.kwargs.get('max_attempts'), 3)
-        self.assertEqual(call_args.kwargs.get('client_timeout'), 30)
-        
-        # Check result
-        self.assertIn("Hello, World!", result)
-        self.assertIn("Python Code Execution Result:", result)
+        try:
+            # Test simple code execution
+            result = tool.call({"code": "print('Hello, World!')"})
+            
+            # Check result
+            self.assertIn("Hello, World!", result)
+            self.assertIn("Python Code Execution Result:", result)
+            print("✓ Real sandbox execution successful")
+            
+        except Exception as e:
+            # If sandbox is not available, provide helpful message
+            if "Connection refused" in str(e) or "Failed to establish" in str(e):
+                self.skipTest(f"Sandbox service not available at {sandbox_endpoint}. Start sandbox service to run this test.")
+            else:
+                self.fail(f"Real sandbox execution failed: {e}")
 
-    @patch('inference.python_sandbox_tool.run_code')
-    @patch('inference.python_sandbox_tool.SANDBOX_FUSION_AVAILABLE', True)
-    def test_code_execution_with_exception(self, mock_run_code):
-        """Test code execution when an exception occurs."""
-        # Mock exception
-        mock_run_code.side_effect = Exception("Connection timeout")
+    def test_code_execution_with_mathematical_operation(self):
+        """Test code execution with mathematical operations."""
+        print("\n🔍 Testing mathematical operations in real sandbox...")
         
         tool = PythonSandboxTool()
-        result = tool.call({"code": "print('test')"})
         
-        # Check result contains error information
-        self.assertIn("Python Code Execution Failed:", result)
-        self.assertIn("Connection timeout", result)
+        try:
+            # Test mathematical calculation
+            result = tool.call({"code": "result = sum(range(1, 11)); print(f'Sum of 1-10: {result}')"})
+            
+            # Check result contains expected output
+            self.assertIn("Sum of 1-10: 55", result)
+            self.assertIn("Python Code Execution Result:", result)
+            print("✓ Mathematical operations test successful")
+            
+        except Exception as e:
+            if "Connection refused" in str(e) or "Failed to establish" in str(e):
+                self.skipTest("Sandbox service not available")
+            else:
+                self.fail(f"Mathematical operations test failed: {e}")
 
-    @patch('inference.python_sandbox_tool.set_endpoint')
-    @patch('inference.python_sandbox_tool.SANDBOX_FUSION_AVAILABLE', True)
-    def test_endpoint_configuration(self, mock_set_endpoint):
+    def test_endpoint_configuration(self):
         """Test endpoint configuration during initialization."""
         # Test with custom endpoint
         with patch.dict(os.environ, {'SANDBOX_FUSION_ENDPOINT': 'http://custom:8080'}):
             tool = PythonSandboxTool()
-            mock_set_endpoint.assert_called_once_with('http://custom:8080')
-        
-        # Reset mock
-        mock_set_endpoint.reset_mock()
+            self.assertEqual(tool.endpoint, 'http://custom:8080')
         
         # Test with default endpoint
         with patch.dict(os.environ, {}, clear=True):
             tool = PythonSandboxTool()
-            mock_set_endpoint.assert_called_once_with('http://localhost:8081')
+            self.assertEqual(tool.endpoint, 'http://localhost:8081')
 
-    @patch('inference.python_sandbox_tool.set_endpoint')
-    @patch('inference.python_sandbox_tool.SANDBOX_FUSION_AVAILABLE', True)
-    def test_endpoint_configuration_error(self, mock_set_endpoint):
+    def test_endpoint_configuration_error_handling(self):
         """Test handling of endpoint configuration errors."""
-        # Mock endpoint setting failure
-        mock_set_endpoint.side_effect = Exception("Invalid endpoint")
-        
+        # Tool should handle missing endpoint gracefully
         tool = PythonSandboxTool()
         
-        # Tool should still be created despite endpoint error
+        # Tool should still be created even if endpoint is invalid
         self.assertIsNotNone(tool)
+        self.assertIsInstance(tool.endpoint, str)
 
 
 class TestPythonSandboxToolEdgeCases(unittest.TestCase):

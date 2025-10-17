@@ -49,13 +49,13 @@ def test_tool_structure():
         result = tool.call(None)
         print("✓ 无效参数处理:", result[:100])
 
-        # 测试数组参数格式
-        result = tool.call({"query": ["Python", "JavaScript"]})
-        print("✓ 数组参数测试:", result[:200])
+        # 测试数组参数格式（真实API调用）
+        result = tool.call({"query": ["Python basics", "JavaScript basics"]})
+        print("✓ 数组参数真实调用测试:", result[:300])
 
-        # 测试字符串参数格式
-        result = tool.call({"query": "Python programming"})
-        print("✓ 字符串参数测试:", result[:200])
+        # 测试字符串参数格式（真实API调用）
+        result = tool.call({"query": "Python programming basics"})
+        print("✓ 字符串参数真实调用测试:", result[:300])
 
         return True
 
@@ -66,45 +66,45 @@ def test_tool_structure():
         print(f"✗ 测试失败: {e}")
         return False
 
-def test_api_call_simulation():
-    """模拟API调用测试"""
+def test_real_api_call():
+    """真实API调用测试"""
     print("\n" + "=" * 50)
-    print("模拟API调用测试")
+    print("真实API调用测试")
     print("=" * 50)
 
     try:
         from inference.google_search_tool import GoogleSearchTool
         tool = GoogleSearchTool()
 
-        # 模拟API响应
-        mock_response = {
-            "searchInformation": {
-                "totalResults": "1234567",
-                "formattedSearchTime": "0.45"
-            },
-            "organic": [
-                {
-                    "title": "Python Programming Tutorials - Real Python",
-                    "snippet": "Learn Python programming with our comprehensive tutorials covering everything from basics to advanced topics.",
-                    "link": "https://realpython.com"
-                },
-                {
-                    "title": "Python.org Official Tutorial",
-                    "snippet": "The official Python tutorial for beginners and experienced programmers alike.",
-                    "link": "https://docs.python.org/3/tutorial/"
-                }
-            ]
-        }
-
-        # 测试格式化功能
-        formatted_result = tool._format_results("Python tutorials", mock_response)
-        print("✓ 结果格式化成功:")
-        print(formatted_result[:400])
-
+        # 简单的测试查询
+        test_query = "Python programming tutorial"
+        print(f"🔍 执行搜索查询: {test_query}")
+        
+        # 执行真实的API调用
+        result = tool.call({"query": test_query})
+        
+        print("✓ 真实API调用成功:")
+        print("\n📋 搜索结果预览:")
+        print(result[:600])  # 显示前600个字符
+        
+        # 验证结果包含预期的格式
+        if "A Google search for" in result and "## Web Results" in result:
+            print("✓ 结果格式正确")
+        else:
+            print("⚠️  结果格式可能有问题")
+        
+        # 验证结果包含搜索统计信息
+        if "search time:" in result.lower():
+            print("✓ 包含搜索时间信息")
+        
         return True
 
     except Exception as e:
-        print(f"✗ 模拟测试失败: {e}")
+        print(f"✗ 真实API调用失败: {e}")
+        print("💡 可能的原因:")
+        print("   - 网络连接问题")
+        print("   - API密钥未设置或无效")
+        print("   - API服务暂时不可用")
         return False
 
 def test_with_qwen_agent():
@@ -160,9 +160,12 @@ def test_google_scholar_tool():
         else:
             print("✗ 参数未使用JSON Schema格式")
 
-        # 测试基本调用功能
+        # 测试基本调用功能（真实API调用）
+        print("🔍 执行Google Scholar搜索: machine learning")
         result = tool.call({"query": "machine learning"})
-        print("✓ 基本调用测试通过")
+        print("✓ Google Scholar真实调用测试通过")
+        print("📋 学术搜索结果预览:")
+        print(result[:400])  # 显示前400个字符
 
         return True
 
@@ -179,7 +182,7 @@ if __name__ == "__main__":
     if test_tool_structure():
         success_count += 1
 
-    if test_api_call_simulation():
+    if test_real_api_call():
         success_count += 1
 
     if test_with_qwen_agent():
