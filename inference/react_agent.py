@@ -85,7 +85,13 @@ Tool Call Format:
 When you need to use a tool, respond with ONLY the JSON object on a separate line:
 {{"name": "tool_name", "arguments": {{"parameter": "value"}}}}
 
-IMPORTANT: Format tool calls as valid JSON objects on their own line, without any additional text or formatting.
+CRITICAL REQUIREMENTS:
+- ALWAYS use the exact format: {{"name": "tool_name", "arguments": {{"parameter": "value"}}}}
+- The "name" field must contain the tool name
+- The "arguments" field must contain a JSON object with parameters
+- NO alternative formats are supported
+- NO additional text or formatting before/after the JSON object
+- Each tool call must be on its own line
 
 Research Guidelines:
 1. Start with broad searches to understand the topic landscape
@@ -116,121 +122,24 @@ Remember: Use tools systematically to gather comprehensive information before pr
     def _detect_tool_calls(self, content: str) -> List[Dict[str, Any]]:
         """Detect and parse tool calls in LLM response."""
         tool_calls = []
-        
-        # Pattern 1: Look for standard JSON tool calls with both name and arguments
-        json_pattern = r'\{[^{}]*"name"[^{}]*"arguments"[^{}]*\}'
-        matches = re.findall(json_pattern, content, re.DOTALL)
-        
-        for match in matches:
+
+        # Look for JSON objects that contain both "name" and "arguments" fields
+        lines = content.split('\n')
+        for line in lines:
+            line = line.strip()
+            if not line or not line.startswith('{') or not line.endswith('}'):
+                continue
+
             try:
-                tool_call = json.loads(match)
+                tool_call = json.loads(line)
                 if 'name' in tool_call and 'arguments' in tool_call:
                     tool_calls.append(tool_call)
             except json.JSONDecodeError:
                 continue
-        
-        # Pattern 2: Look for alternative formats (e.g., {"name": "search", "query": "..."} )
-        if not tool_calls:
-            alt_patterns = [
-                r'\{[^{}]*"name"[^{}]*"query"[^{}]*\}',
-                r'\{[^{}]*"name"[^{}]*"url"[^{}]*\}',
-                r'\{[^{}]*"name"[^{}]*"code"[^{}]*\}',
-                r'\{[^{}]*"tool_code"[^{}]*"arguments"[^{}]*\}'
-            ]
-            
-            for pattern in alt_patterns:
-                matches = re.findall(pattern, content, re.DOTALL)
-                for match in matches:
-                    try:
-                        tool_call = json.loads(match)
-                        # Normalize the tool call
-                        normalized_call = self._normalize_tool_call(tool_call)
-                        if normalized_call:
-                            tool_calls.append(normalized_call)
-                    except json.JSONDecodeError:
-                        continue
-        
-        # Pattern 3: Look for JSON objects that might be tool calls by keyword
-        if not tool_calls:
-            lines = content.split('\n')
-            for i, line in enumerate(lines):
-                # Skip empty lines and lines that don't contain tool indicators
-                if not line.strip() or not any(indicator in line.lower() for indicator in ['search', 'scholar', 'visit', 'python', 'sandbox', 'code', '"name"', 'tool_code']):
-                    continue
-                
-                # Try to extract JSON from the line
-                if '{' in line and '}' in line:
-                    try:
-                        # Find the most likely JSON object
-                        json_start = line.find('{')
-                        json_end = line.rfind('}') + 1
-                        if json_start < json_end:
-                            json_str = line[json_start:json_end]
-                            tool_call = json.loads(json_str)
-                            normalized_call = self._normalize_tool_call(tool_call)
-                            if normalized_call:
-                                tool_calls.append(normalized_call)
-                    except json.JSONDecodeError:
-                        pass
-        
-        # Pattern 4: Multi-line JSON detection
-        if not tool_calls:
-            lines = content.split('\n')
-            for i, line in enumerate(lines):
-                if '{' in line and any(keyword in line.lower() for keyword in ['name', 'search', 'scholar', 'visit', 'python', 'sandbox', 'code', 'tool_code']):
-                    # Start of potential JSON object
-                    json_start = line.find('{')
-                    if json_start == -1:
-                        continue
-                    
-                    json_str = line[json_start:]
-                    brace_count = json_str.count('{') - json_str.count('}')
-                    
-                    # If braces are not balanced, include more lines
-                    j = i + 1
-                    while brace_count > 0 and j < len(lines):
-                        json_str += lines[j] + '\n'
-                        brace_count += lines[j].count('{') - lines[j].count('}')
-                        j += 1
-                    
-                    try:
-                        tool_call = json.loads(json_str.strip())
-                        normalized_call = self._normalize_tool_call(tool_call)
-                        if normalized_call:
-                            tool_calls.append(normalized_call)
-                    except json.JSONDecodeError:
-                        continue
-        
+
         return tool_calls
     
-    def _normalize_tool_call(self, tool_call: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Normalize various tool call formats to standard format."""
-        if not isinstance(tool_call, dict):
-            return None
         
-        # Extract tool name
-        tool_name = tool_call.get('name') or tool_call.get('tool_code')
-        if not tool_name:
-            return None
-        
-        # Extract arguments (could be in different fields)
-        arguments = tool_call.get('arguments')
-        if not arguments:
-            # Look for common argument field names
-            for field in ['query', 'url', 'goal', 'code']:
-                if field in tool_call:
-                    arguments = {field: tool_call[field]}
-                    break
-        
-        if not arguments:
-            return None
-        
-        # Return normalized tool call
-        return {
-            'name': tool_name,
-            'arguments': arguments
-        }
-    
     def _execute_tool(self, tool_name: str, arguments: Dict[str, Any]) -> str:
         """Execute a tool with given arguments."""
         if tool_name not in self.tools:
