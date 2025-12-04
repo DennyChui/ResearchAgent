@@ -30,9 +30,6 @@ export GLM_API_KEY="your_glm_api_key_here"
 ### 快速测试
 
 ```bash
-# 测试基础功能
-uv run python researchagent.py test
-
 # 搜索功能
 uv run python researchagent.py search "人工智能最新发展"
 
@@ -52,9 +49,10 @@ ResearchAgent/
 │   ├── google_scholar_tool.py   # Google学术搜索
 │   ├── jina_url_visit_tool.py   # Jina网页访问工具
 │   ├── python_sandbox_tool.py   # Python沙箱工具
-│   └── react_agent.py          # ReAct Agent实现
+│   ├── react_agent.py          # ReAct Agent实现
+│   ├── chat_agent.py           # 聊天代理
+│   └── research_tool.py        # 研究工具
 ├── cli/                     # 命令行接口模块
-├── examples/               # 使用示例
 ├── tests/                  # 测试脚本
 └── researchagent.py        # CLI入口点
 ```
@@ -72,13 +70,6 @@ uv run python researchagent.py search "深度学习" --type scholar
 
 # 智能研究
 uv run python researchagent.py research "研究问题"
-
-# 运行示例
-uv run python researchagent.py example basic
-uv run python researchagent.py example react
-
-# 测试系统
-uv run python researchagent.py test
 ```
 
 ### 高级选项
@@ -146,8 +137,8 @@ print(f"📊 消息总数: {len(agent.messages)}")
 ### 必需环境变量
 
 ```bash
-# GLM-4.5-air LLM API (必需)
-export GLM_API_KEY="your_glm_api_key_here"
+# LLM API (必需)
+export LLM_API_KEY="your_llm_api_key_here"
 
 # 搜索服务API密钥 (可选，有默认值)
 export SERPER_KEY_ID="your_serper_api_key_here"
@@ -163,7 +154,7 @@ export SANDBOX_FUSION_ENDPOINT="http://localhost:8081"
 
 | 服务 | 端点 | 免费额度 | 必需性 |
 |------|------|----------|--------|
-| **GLM-4.5-air** | [智谱AI](https://open.bigmodel.cn/) | 按token计费 | ✅ 必需 |
+| **LLM** | [智谱AI](https://open.bigmodel.cn/) | 按token计费 | ✅ 必需 |
 | **Serper Search** | [Serper](https://serper.dev/) | 2,500次/月 | ❌ 可选 |
 | **Jina API** | [Jina AI](https://jina.ai/) | 200,000次/月 | ❌ 可选 |
 | **Sandbox Fusion** | 本地服务 | 无限制 | ❌ 可选 |
@@ -210,7 +201,7 @@ uv run python tests/test_react_agent.py
 
 ### API 限制
 - **Serper API**: 每月2,500次免费请求
-- **GLM-4.5-air**: 按token计费
+- **LLM**: 按token计费
 - **Jina API**: 每月200,000次免费请求
 
 ## 🔧 开发指南
