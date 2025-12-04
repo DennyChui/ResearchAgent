@@ -36,7 +36,7 @@ def print_banner() -> None:
 ║                   AI研究助手命令行工具                        ║
 ║                                                              ║
 ║  版本: 0.2.0                                               ║
-║  功能: 搜索 | 研究 | 测试 | 示例 | 交互                      ║
+║  功能: 搜索 | 研究 | 测试 | 交互                      ║
 ╚══════════════════════════════════════════════════════════════╝
 
 使用 'researchagent --help' 查看详细帮助
@@ -57,7 +57,6 @@ def print_help() -> None:
   search <query>       - 执行搜索查询
   research <question>  - 使用ReAct Agent进行深度研究
   test                 - 运行测试套件
-  example [name]       - 运行使用示例
   interactive          - 启动交互式模式
 
 全局选项:
@@ -71,7 +70,6 @@ def print_help() -> None:
   researchagent research "量子计算的应用前景"
   researchagent test --tool search
   researchagent interactive --mode research
-  researchagent example react
 
 更多信息请访问: https://github.com/DennyChui/ResearchAgent
 """

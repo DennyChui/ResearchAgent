@@ -14,7 +14,6 @@ from .commands import (
     SearchCommand,
     ResearchCommand,
     TestCommand,
-    ExampleCommand,
     InteractiveCommand
 )
 from .utils import setup_logging, print_banner, print_help
@@ -29,7 +28,6 @@ class ResearchAgentCLI:
             'search': SearchCommand(),
             'research': ResearchCommand(),
             'test': TestCommand(),
-            'example': ExampleCommand(),
             'interactive': InteractiveCommand()
         }
 

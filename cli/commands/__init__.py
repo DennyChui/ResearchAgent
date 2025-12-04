@@ -9,7 +9,6 @@ from .base import BaseCommand
 from .search import SearchCommand
 from .research import ResearchCommand
 from .test import TestCommand
-from .example import ExampleCommand
 from .interactive import InteractiveCommand
 
 __all__ = [
@@ -17,6 +16,5 @@ __all__ = [
     "SearchCommand",
     "ResearchCommand",
     "TestCommand",
-    "ExampleCommand",
     "InteractiveCommand"
 ]
