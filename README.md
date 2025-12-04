@@ -164,22 +164,16 @@ export SANDBOX_FUSION_ENDPOINT="http://localhost:8081"
 ### 运行测试
 
 ```bash
-# 运行所有测试
-uv run python tests/run_tests_with_config.py --all
-
 # 检查配置状态
 uv run python tests/test_config.py
-
-# 运行特定API测试
-uv run python tests/run_tests_with_config.py --api search
-uv run python tests/run_tests_with_config.py --api jina
-uv run python tests/run_tests_with_config.py --api sandbox
 
 # 运行特定测试模块
 uv run python tests/test_google_search.py
 uv run python tests/test_jina_url_visit.py
 uv run python tests/test_python_sandbox.py
 uv run python tests/test_react_agent.py
+uv run python tests/test_research_tool.py
+uv run python tests/test_chat_agent.py
 ```
 
 ### 测试配置
