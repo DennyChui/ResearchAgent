@@ -31,16 +31,19 @@ class ReActAgent:
     
     def __init__(self):
         """Initialize the ReAct Agent with LLM client and tools."""
-        # Initialize LLM client for GLM-4.5-air
+        # Initialize LLM client with environment variables
         api_key = os.getenv('GLM_API_KEY')
+        model = os.getenv('GLM_MODEL', 'glm-4.5-air')
+        model_server = os.getenv('GLM_MODEL_SERVER', 'https://open.bigmodel.cn/api/paas/v4')
+
         if not api_key:
             raise ValueError("GLM_API_KEY environment variable is required")
-        
+
         self.client = OpenAI(
             api_key=api_key,
-            base_url="https://open.bigmodel.cn/api/paas/v4"
+            base_url=model_server
         )
-        self.model = "glm-4.5-air"
+        self.model = model
         
         # Initialize available tools
         self.tools = {

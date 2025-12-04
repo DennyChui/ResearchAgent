@@ -66,6 +66,7 @@ def get_sandbox_endpoints() -> list:
 def validate_required_keys():
     """Validate that all required API keys are present."""
     required_keys = ['GLM_API_KEY', 'SERPER_KEY_ID', 'JINA_API_KEY']
+    # GLM_MODEL and GLM_MODEL_SERVER are optional with defaults
     missing_keys = []
     
     for key in required_keys:
