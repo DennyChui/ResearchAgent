@@ -25,10 +25,10 @@ class TestConfig:
         return {
             # API配置
             'apis': {
-                'glm': {
+                'llm': {
                     'required': True,
-                    'env_key': 'GLM_API_KEY',
-                    'description': 'GLM-4.5-air LLM API for ReAct Agent',
+                    'env_key': 'LLM_API_KEY',
+                    'description': 'LLM API for ReAct Agent',
                     'test_endpoint': 'https://open.bigmodel.cn/api/paas/v4/chat/completions'
                 },
                 'serper': {
