@@ -50,7 +50,6 @@ ResearchAgent/
 │   ├── jina_url_visit_tool.py   # Jina网页访问工具
 │   ├── python_sandbox_tool.py   # Python沙箱工具
 │   ├── react_agent.py          # ReAct Agent实现
-│   ├── chat_agent.py           # 聊天代理
 │   └── research_tool.py        # 研究工具
 ├── cli/                     # 命令行接口模块
 ├── tests/                  # 测试脚本
@@ -169,11 +168,11 @@ uv run python tests/test_config.py
 
 # 运行特定测试模块
 uv run python tests/test_google_search.py
+uv run python tests/test_google_scholar_tool.py
 uv run python tests/test_jina_url_visit.py
 uv run python tests/test_python_sandbox.py
 uv run python tests/test_react_agent.py
 uv run python tests/test_research_tool.py
-uv run python tests/test_chat_agent.py
 ```
 
 ### 测试配置
